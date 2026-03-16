@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>SASA Legal Fund Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Inter',sans-serif;background:#F1F5F9;color:#0F172A;-webkit-tap-highlight-color:transparent}
+:root{--nv:#0F1B3D;--bl:#2563EB;--gn:#059669;--am:#D97706;--rd:#DC2626;--tl:#0D9488;--pr:#7C3AED}
+.pin-bg{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--nv),#1E3A5F,var(--tl));padding:16px}
+.pin-box{background:#fff;border-radius:24px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 25px 60px rgba(0,0,0,.3)}
+.pin-box h2{color:var(--nv);font-size:20px;font-weight:900;margin:8px 0 4px}
+.pin-box p{color:#64748B;font-size:11px;margin-bottom:24px}
+.pin-box input{width:100%;border:2px solid #CBD5E1;border-radius:14px;padding:16px;text-align:center;font-size:28px;letter-spacing:10px;font-weight:900;outline:none;transition:border .2s}
+.pin-box input:focus{border-color:var(--bl)}
+.pin-box button{width:100%;padding:14px;border:none;border-radius:14px;background:var(--nv);color:#fff;font-weight:700;font-size:14px;cursor:pointer;margin-top:14px}
+.pin-err{color:var(--rd);font-size:12px;margin-top:8px;min-height:18px}
+.hide{display:none!important}.wrap{max-width:960px;margin:0 auto;padding:10px}
+.hdr{background:var(--nv);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.hdr h1{color:#fff;font-size:17px;font-weight:900}.hdr small{color:#94A3B8;font-size:10px}
+.hdr .dot{width:10px;height:10px;border-radius:50%;margin-left:auto;flex-shrink:0}
+.tabs{display:flex;gap:3px;background:#fff;border-radius:12px;padding:4px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.tab{flex:1;padding:10px 4px;border:none;border-radius:10px;font-size:10px;font-weight:700;cursor:pointer;background:0;color:#64748B;transition:all .2s}
+.tab.on{background:var(--nv);color:#fff;box-shadow:0 2px 10px rgba(15,27,61,.25)}
+.sel{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:8px 14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sel label{font-size:11px;font-weight:700;color:#475569;white-space:nowrap}
+.sel select{border:2px solid #93C5FD;border-radius:10px;padding:7px 10px;font-weight:700;font-size:12px;color:var(--bl);background:#FFFDE7;flex:1;max-width:220px;font-family:inherit}
+.cards{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.cd{flex:1;min-width:100px;border:2px solid;border-radius:14px;padding:10px 6px;text-align:center}
+.cd .lb{font-size:9px;font-weight:700;text-transform:uppercase;color:#64748B}
+.cd .vl{font-size:26px;font-weight:900;margin:2px 0}.cd .sb{font-size:9px;color:#94A3B8}
+.fin{background:var(--tl);border-radius:14px;padding:10px;margin-bottom:10px}
+.fin h3{color:#fff;font-size:11px;font-weight:700;text-align:center;margin-bottom:8px}
+.fin .row{display:flex;gap:8px;flex-wrap:wrap}
+.fc{flex:1;min-width:90px;border:1px solid;border-radius:10px;padding:8px 6px;text-align:center;background:#fff}
+.fc .lb{font-size:8px;font-weight:700;color:#64748B;text-transform:uppercase}
+.fc .vl{font-size:15px;font-weight:900;margin-top:2px}
+.gr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+@media(max-width:640px){.gr{grid-template-columns:1fr}}
+.bx{background:#fff;border-radius:14px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid #E2E8F0}
+.bx h4{font-size:11px;font-weight:700;text-align:center;color:var(--nv);margin-bottom:8px}
+.bx canvas{width:100%!important;max-height:260px}
+.tw{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);border:1px solid #E2E8F0;margin-bottom:10px}
+.th{padding:10px;font-weight:700;font-size:12px;text-align:center;color:#fff}
+.ts{max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{background:#F1F5F9;padding:6px 8px;font-weight:700;position:sticky;top:0;z-index:1}
+td{padding:5px 8px;border-bottom:1px solid #E2E8F0}
+.bar-c{display:flex;align-items:center;gap:4px}.bar-t{display:flex;width:80px}
+.bar-s{height:10px;flex:1;margin:0 1px;border-radius:2px}
+.pct{font-size:11px;font-weight:700;white-space:nowrap}
+.ft{text-align:center;font-size:10px;color:#94A3B8;padding:14px 0}
+.srch-input{width:100%;border:2px solid #93C5FD;border-radius:12px;padding:12px 16px;font-size:13px;font-weight:600;background:#FFFDE7;outline:none;font-family:inherit}
+.srch-input:focus{border-color:var(--bl);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.srch-input::placeholder{color:#94A3B8;font-weight:400}
+.res-list{max-height:240px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:10px;margin-top:8px}
+.res-item{padding:10px 12px;border-bottom:1px solid #F1F5F9;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.res-item:active{background:#EFF6FF}
+.res-item .nm{font-weight:700;font-size:12px}.res-item .nc{font-size:10px;color:#64748B;margin-left:8px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.profile{background:#fff;border-radius:16px;border:2px solid var(--nv);overflow:hidden;margin-bottom:10px;box-shadow:0 8px 30px rgba(0,0,0,.1)}
+.profile .top{background:var(--nv);padding:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.profile .top h3{color:#fff;font-size:15px;font-weight:900}
+.profile .top small{color:#94A3B8;font-size:10px;display:block}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.cell{background:#F8FAFC;border-radius:10px;padding:10px;border:1px solid #E2E8F0}
+.cell .clb{font-size:9px;font-weight:700;color:#64748B;text-transform:uppercase}
+.cell .cvl{font-size:13px;font-weight:700;margin-top:3px}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px}
+.pay-box{border-radius:12px;padding:14px;text-align:center;border:2px solid}
+.pay-box .icon{font-size:28px;margin-bottom:4px}
+.pay-box .ptitle{font-size:12px;font-weight:700}
+.pay-box .psub{font-size:10px;margin-top:2px}
+.pay-box .rcpt{font-size:9px;color:#64748B;margin-top:4px}
+.flt-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid #E2E8F0}
+.flt-bar label{font-size:11px;font-weight:700}
+.flt-bar select{border:1px solid #CBD5E1;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;font-family:inherit}
+.loading{text-align:center;padding:40px;color:#64748B;font-size:13px}
+</style>
+</head>
+<body>
+<div id="P" class="pin-bg"><div class="pin-box">
+<h2>SASA LEGAL FUND</h2><p>Sri Lanka Administrative Service Association</p>
+<input type="password" id="pi" maxlength="10" placeholder="Enter PIN" inputmode="numeric">
+<button onclick="ck()">Access Dashboard</button><div class="pin-err" id="pe"></div>
+</div></div>
+
+<div id="D" class="hide"><div class="wrap">
+<div class="hdr"><div style="flex:1"><h1>SASA LEGAL FUND</h1><small>Contribution Dashboard</small></div>
+<div class="dot" id="dot" style="background:var(--am)" title="Loading..."></div></div>
+
+<div class="tabs" id="tabs">
+<button class="tab on" data-t="overview">&#128202; Overview</button>
+<button class="tab" data-t="search">&#128269; Search</button>
+<button class="tab" data-t="batches">&#128203; Batches</button>
+<button class="tab" data-t="ranking">&#127942; Rankings</button>
+</div>
+
+<div class="sel" id="bsel"><label>Select Batch:</label><select id="bdd"></select></div>
+<div class="sel hide" id="ssel"><label>Filter Stream:</label><select id="sdd"><option>All</option><option>Open</option><option>Limited</option><option>Merit</option></select></div>
+
+<div id="t_overview">
+<div class="cards" id="cds"></div>
+<div class="fin"><h3>FINANCIAL OVERVIEW (LKR)</h3><div class="row" id="fcs"></div></div>
+<div class="gr">
+<div class="bx"><h4 id="ptt">Payment Status</h4><canvas id="pc"></canvas></div>
+<div class="bx"><h4 id="btt">Collection Breakdown</h4><canvas id="bc"></canvas></div>
+</div></div>
+
+<div id="t_search" class="hide">
+<div class="bx" style="margin-bottom:10px">
+<h4 style="margin-bottom:10px">&#128269; INDIVIDUAL MEMBER LOOKUP</h4>
+<input type="text" id="sq" class="srch-input" placeholder="Type NIC number or Name (min 2 chars)..." oninput="doSearch()">
+<div id="sres"></div></div>
+<div id="sprofile"></div>
+<div class="tw">
+<div class="th" style="background:var(--nv)">FILTERED MEMBER LIST</div>
+<div class="flt-bar"><label>Batch:</label><select id="flb" onchange="fltList()"></select>
+<label style="margin-left:8px">Status:</label><select id="fls" onchange="fltList()"><option>Not Paid</option><option>One Paid</option><option>Both Paid</option></select>
+<span id="flc" class="badge" style="background:#DBEAFE;color:var(--bl);margin-left:auto">0</span></div>
+<div class="ts"><table><thead><tr><th>#</th><th style="text-align:left">Name</th><th>NIC</th><th>Batch</th><th>Workplace</th><th>1st</th><th>2nd</th></tr></thead>
+<tbody id="fltb"></tbody></table></div></div></div>
+
+<div id="t_batches" class="hide"><div class="tw"><div class="th" style="background:var(--nv)">ALL BATCHES</div>
+<div class="ts"><table><thead><tr><th>#</th><th style="text-align:left">Batch</th><th>Exp</th><th style="color:var(--gn)">Both</th><th style="color:var(--am)">One</th><th style="color:var(--rd)">None</th><th>Completion</th><th style="text-align:right">Collected</th></tr></thead>
+<tbody id="btb"></tbody></table></div></div></div>
+
+<div id="t_ranking" class="hide">
+<div class="gr">
+<div class="bx"><h4>Top 5 Collection (LKR)</h4><canvas id="r1"></canvas></div>
+<div class="bx"><h4>Top 10 % Fully Paid</h4><canvas id="r2"></canvas></div></div>
+<div class="tw"><div class="th" id="rh" style="background:var(--pr)">TOP BATCHES</div>
+<table><thead><tr><th>Rank</th><th style="text-align:left">Batch</th><th>Exp</th><th>Fully Paid</th><th>% Paid</th><th>Bar</th></tr></thead>
+<tbody id="rtb"></tbody></table></div></div>
+
+<div class="ft">SASA Legal Fund &#8226; <span id="tm">0</span> Members &#8226; <span id="tb">0</span> Batches</div>
+</div></div>
+
+<script>
+// ============================================
+// EDIT THESE TWO LINES ONLY
+var SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vSJK7xf574KNQs7OvJEkgOHcrw_tcxrQ3RV8zRwlgvGQ9b587GZ_rrkZYuW2ih4xw/pub?gid=637468326&single=true&output=csv";
+var PIN="2025";
+// ============================================
+
+var M=[],B=[],pC,bC,r1C,r2C;
+var $=function(id){return document.getElementById(id)};
+var fm=function(n){return n.toLocaleString()};
+var G='#059669',A='#D97706',R='#DC2626',BL='#2563EB',NV='#0F1B3D';
+
+$('pi').addEventListener('keydown',function(e){if(e.key==='Enter')ck()});
+function ck(){
+  if($('pi').value===PIN){$('P').classList.add('hide');$('D').classList.remove('hide');load()}
+  else{$('pe').textContent='Incorrect PIN';$('pi').value=''}
+}
+
+$('tabs').addEventListener('click',function(e){
+  var t=e.target.closest('.tab');if(!t)return;var id=t.dataset.t;
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});t.classList.add('on');
+  ['overview','search','batches','ranking'].forEach(function(x){$('t_'+x).classList.toggle('hide',x!==id)});
+  $('bsel').classList.toggle('hide',id==='ranking'||id==='search');
+  $('ssel').classList.toggle('hide',id!=='ranking');
+});
+
+function load(){
+  if(!SHEET_URL){$('dot').style.background=R;$('dot').title='No URL configured';return}
+  fetch(SHEET_URL).then(function(r){return r.text()}).then(function(csv){
+    M=parseMbr(csv);
+    $('dot').style.background=G;$('dot').title='Live - '+M.length+' members loaded';
+    buildB();fill();upd();btbl();rnk();fltList();
+    $('tm').textContent=fm(M.length);$('tb').textContent=B.length;
+  }).catch(function(e){
+    console.error('Fetch error:',e);
+    $('dot').style.background=R;$('dot').title='Failed to load data';
+  });
+}
+
+function parseMbr(csv){
+  var lines=csv.trim().split('\n');
+  var d=[];
+  for(var i=1;i<lines.length;i++){
+    var line=lines[i].replace(/\r/g,'');
+    var c=line.split(',');
+    // Skip rows with fewer than 9 columns
+    if(c.length<9) continue;
+    // Column 4 = Name. Skip if empty or too short
+    var nm=(c[4]||'').trim();
+    if(nm.length<3) continue;
+    // Column 0 = BatchName. Skip if empty
+    var batch=(c[0]||'').trim();
+    if(batch.length<3) continue;
+    // Columns 8,9 = Receipt_1st, Receipt_2nd
+    // Payment status determined from receipt presence
+    var r1=(c[8]||'').trim();
+    var r2=(c[9]||'').trim();
+    // A receipt is valid if it has content (like "R12345")
+    var i1=(r1.length>0)?1:0;
+    var i2=(r2.length>0)?1:0;
+    var total=(i1+i2)*5000;
+    var status;
+    if(i1 && i2) status='Both Paid';
+    else if(i1 || i2) status='One Paid';
+    else status='Not Paid';
+    d.push({
+      batch:batch,stream:(c[2]||'').trim(),
+      name:nm,nic:(c[5]||'').trim(),
+      wp:(c[6]||'').trim(),desig:(c[7]||'').trim(),
+      r1:r1,r2:r2,total:total,i1:i1,i2:i2,status:status
+    });
+  }
+  return d;
+}
+
+function buildB(){
+  var map={};
+  M.forEach(function(m){
+    if(!map[m.batch]) map[m.batch]={name:m.batch,stream:m.stream,expected:0,both:0,one:0,none:0,collected:0};
+    var b=map[m.batch];b.expected++;b.collected+=m.total;
+    if(m.status==='Both Paid')b.both++;
+    else if(m.status==='One Paid')b.one++;
+    else b.none++;
+  });
+  B=Object.values(map).sort(function(a,b){
+    var ya=parseInt(a.name),yb=parseInt(b.name);
+    return ya!==yb?ya-yb:a.name.localeCompare(b.name);
+  });
+  B.forEach(function(b){b.entered=b.both+b.one+b.none;b.pct=b.expected>0?b.both/b.expected:0});
+}
+
+function fill(){
+  $('bdd').innerHTML='<option>All</option>'+B.map(function(b){return '<option>'+b.name+'</option>'}).join('');
+  $('bdd').onchange=upd;$('sdd').onchange=rnk;
+  $('flb').innerHTML='<option>All</option>'+B.map(function(b){return '<option>'+b.name+'</option>'}).join('');
+}
+
+function gf(){var v=$('bdd').value;return v==='All'?B:B.filter(function(b){return b.name===v})}
+
+function upd(){
+  var f=gf(),v=$('bdd').value;
+  var bp=f.reduce(function(s,b){return s+b.both},0);
+  var op=f.reduce(function(s,b){return s+b.one},0);
+  var np=f.reduce(function(s,b){return s+b.none},0);
+  var cl=f.reduce(function(s,b){return s+b.collected},0);
+  var ex=f.reduce(function(s,b){return s+b.expected},0);
+  var ot=ex*10000-cl;
+  var sx=v!=='All'?' - '+v:'';
+  $('cds').innerHTML=[
+    {l:'Members',v:bp+op+np,bg:'#DBEAFE',fg:BL,s:'of '+fm(ex)},
+    {l:'Both Paid',v:bp,bg:'#DCFCE7',fg:G,s:'fully'},
+    {l:'One Paid',v:op,bg:'#FEF3C7',fg:A,s:'partial'},
+    {l:'Not Paid',v:np,bg:'#FEE2E2',fg:R,s:'none'}
+  ].map(function(c){return '<div class="cd" style="background:'+c.bg+';border-color:'+c.fg+'"><div class="lb">'+c.l+'</div><div class="vl" style="color:'+c.fg+'">'+fm(c.v)+'</div><div class="sb">'+c.s+'</div></div>'}).join('');
+  $('fcs').innerHTML=[
+    {l:'Collected',v:cl,fg:G},{l:'1st Inst.',v:(bp+op)*5000,fg:BL},
+    {l:'2nd Inst.',v:bp*5000,fg:A},{l:'Outstanding',v:ot,fg:R}
+  ].map(function(c){return '<div class="fc" style="border-color:'+c.fg+'"><div class="lb">'+c.l+'</div><div class="vl" style="color:'+c.fg+'">LKR '+fm(c.v)+'</div></div>'}).join('');
+  $('ptt').textContent='Payment Status'+sx;$('btt').textContent='Collection Breakdown'+sx;
+  if(pC)pC.destroy();
+  pC=new Chart($('pc'),{type:'doughnut',data:{labels:['Both Paid','One Paid','Not Paid'],datasets:[{data:[bp,op,np],backgroundColor:[G,A,R],borderWidth:2,hoverOffset:6}]},options:{responsive:true,cutout:'55%',animation:{duration:800},plugins:{legend:{position:'bottom',labels:{font:{size:10,family:'Inter'},padding:10,usePointStyle:true,pointStyle:'circle'}}}}});
+  if(bC)bC.destroy();
+  bC=new Chart($('bc'),{type:'bar',data:{labels:['Both (10K)','One (5K)','Outstanding'],datasets:[{data:[bp*10000,op*5000,ot],backgroundColor:[G,A,R],borderRadius:6,borderSkipped:false}]},options:{responsive:true,animation:{duration:600},plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3)+'K'},font:{size:10}},grid:{color:'#E2E8F0'}},x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+}
+
+function doSearch(){
+  var q=$('sq').value.trim().toLowerCase();
+  if(q.length<2){$('sres').innerHTML='';return}
+  var res=M.filter(function(m){return m.name.toLowerCase().indexOf(q)>=0||m.nic.indexOf(q)>=0}).slice(0,25);
+  if(!res.length){$('sres').innerHTML='<p style="padding:10px;color:var(--rd);font-size:12px">No members found</p>';return}
+  window._sr=res;
+  $('sres').innerHTML='<div class="res-list">'+res.map(function(m,i){
+    var sc=m.status==='Both Paid'?G:m.status==='One Paid'?A:R;
+    var bg=m.status==='Both Paid'?'#DCFCE7':m.status==='One Paid'?'#FEF3C7':'#FEE2E2';
+    return '<div class="res-item" onclick="showP('+i+')"><div><span class="nm">'+m.name+'</span><span class="nc">NIC: '+m.nic+'</span></div><span class="badge" style="background:'+bg+';color:'+sc+'">'+m.status+'</span></div>'
+  }).join('')+'</div>';
+}
+
+function showP(i,src){
+  var m=src==='flt'?window._fr[i]:window._sr[i];if(!m)return;
+  var sc=m.status==='Both Paid'?G:m.status==='One Paid'?A:R;
+  var bg=m.status==='Both Paid'?'#DCFCE7':m.status==='One Paid'?'#FEF3C7':'#FEE2E2';
+  var h='<div class="profile"><div class="top"><div><h3>'+m.name+'</h3><small>NIC: '+m.nic+' | '+m.batch+'</small></div><span class="badge" style="background:'+bg+';color:'+sc+';margin-left:auto">'+m.status+'</span></div>';
+  h+='<div class="pgrid"><div class="cell"><div class="clb">Batch</div><div class="cvl">'+m.batch+'</div></div><div class="cell"><div class="clb">Workplace</div><div class="cvl">'+m.wp+'</div></div><div class="cell"><div class="clb">Designation</div><div class="cvl">'+m.desig+'</div></div><div class="cell"><div class="clb">Total Contributed</div><div class="cvl" style="color:'+(m.total>0?G:R)+'">LKR '+fm(m.total)+'</div></div></div>';
+  h+='<div class="pay"><div class="pay-box" style="background:'+(m.i1?'#DCFCE7':'#FEE2E2')+';border-color:'+(m.i1?G:R)+'"><div class="icon">'+(m.i1?'&#9989;':'&#10060;')+'</div><div class="ptitle">1st Instalment</div><div class="psub" style="color:'+(m.i1?G:R)+'">'+(m.i1?'PAID - LKR 5,000':'NOT PAID')+'</div>'+(m.r1?'<div class="rcpt">Receipt: '+m.r1+'</div>':'')+'</div>';
+  h+='<div class="pay-box" style="background:'+(m.i2?'#DCFCE7':'#FEE2E2')+';border-color:'+(m.i2?G:R)+'"><div class="icon">'+(m.i2?'&#9989;':'&#10060;')+'</div><div class="ptitle">2nd Instalment</div><div class="psub" style="color:'+(m.i2?G:R)+'">'+(m.i2?'PAID - LKR 5,000':'NOT PAID')+'</div>'+(m.r2?'<div class="rcpt">Receipt: '+m.r2+'</div>':'')+'</div></div></div>';
+  $('sprofile').innerHTML=h;
+  $('sprofile').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function fltList(){
+  var bv=$('flb').value,sv=$('fls').value;
+  var res=M.filter(function(m){return (bv==='All'||m.batch===bv)&&m.status===sv});
+  window._fr=res;
+  $('flc').textContent=res.length+' found';
+  $('fltb').innerHTML=res.slice(0,150).map(function(m,i){
+    return '<tr style="background:'+(i%2?'#F8FAFC':'#fff')+';cursor:pointer" onclick="showP('+i+',\'flt\')"><td style="text-align:center;color:#94A3B8">'+(i+1)+'</td><td style="font-weight:700">'+m.name+'</td><td style="text-align:center;font-family:monospace;font-size:10px">'+m.nic+'</td><td style="text-align:center;font-size:10px">'+m.batch+'</td><td style="font-size:10px">'+m.wp+'</td><td style="text-align:center;font-size:14px">'+(m.i1?'&#9989;':'&#10060;')+'</td><td style="text-align:center;font-size:14px">'+(m.i2?'&#9989;':'&#10060;')+'</td></tr>'
+  }).join('')+(res.length>150?'<tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:8px">Showing 150 of '+res.length+'</td></tr>':'');
+}
+
+function mkbar(p){
+  var c=p>=.5?G:p>=.25?A:R;
+  var segs='';for(var i=0;i<20;i++){segs+='<div class="bar-s" style="background:'+(i<Math.round(p*20)?c:'#E2E8F0')+'"></div>'}
+  return '<div class="bar-c"><div class="bar-t">'+segs+'</div><span class="pct" style="color:'+c+'">'+(p*100).toFixed(1)+'%</span></div>';
+}
+
+function btbl(){
+  var T=B.reduce(function(s,b){return s+b.expected},0);
+  var h=B.map(function(b,i){
+    return '<tr style="background:'+(i%2?'#F8FAFC':'#fff')+'"><td style="text-align:center;color:#94A3B8">'+(i+1)+'</td><td style="font-weight:700">'+b.name+'</td><td style="text-align:center">'+b.expected+'</td><td style="text-align:center;color:'+G+';font-weight:700">'+b.both+'</td><td style="text-align:center;color:'+A+'">'+b.one+'</td><td style="text-align:center;color:'+R+'">'+b.none+'</td><td>'+mkbar(b.pct)+'</td><td style="text-align:right;font-family:monospace">'+fm(b.collected)+'</td></tr>'
+  }).join('');
+  h+='<tr style="background:'+NV+';color:#fff;font-weight:700"><td colspan="2" style="padding:8px">TOTAL</td><td style="text-align:center">'+fm(T)+'</td><td style="text-align:center">'+fm(B.reduce(function(s,b){return s+b.both},0))+'</td><td style="text-align:center">'+fm(B.reduce(function(s,b){return s+b.one},0))+'</td><td style="text-align:center">'+fm(B.reduce(function(s,b){return s+b.none},0))+'</td><td></td><td style="text-align:right">'+fm(B.reduce(function(s,b){return s+b.collected},0))+'</td></tr>';
+  $('btb').innerHTML=h;
+}
+
+function rnk(){
+  var sv=$('sdd').value;
+  var sf=sv==='All'?B:B.filter(function(b){return (b.stream.indexOf('Limited')>=0?'Limited':b.stream)===sv});
+  var t5=sf.slice().sort(function(a,b){return b.collected-a.collected}).slice(0,5);
+  var t10=sf.slice().sort(function(a,b){return b.pct-a.pct}).slice(0,10);
+  $('rh').textContent='TOP BATCHES - '+(sv==='All'?'All Streams':sv);
+  if(r1C)r1C.destroy();
+  r1C=new Chart($('r1'),{type:'bar',data:{labels:t5.map(function(b){return b.name}),datasets:[{data:t5.map(function(b){return b.collected}),backgroundColor:BL,borderRadius:6,borderSkipped:false}]},options:{responsive:true,animation:{duration:600},plugins:{legend:{display:false}},scales:{y:{ticks:{callback:function(v){return (v/1e3)+'K'},font:{size:9}},grid:{color:'#E2E8F0'}},x:{ticks:{font:{size:8},maxRotation:20},grid:{display:false}}}}});
+  if(r2C)r2C.destroy();
+  r2C=new Chart($('r2'),{type:'bar',data:{labels:t10.map(function(b){return b.name}),datasets:[{data:t10.map(function(b){return b.pct*100}),backgroundColor:G,borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,animation:{duration:600},plugins:{legend:{display:false}},scales:{x:{max:100,ticks:{callback:function(v){return v+'%'},font:{size:9}},grid:{color:'#E2E8F0'}},y:{ticks:{font:{size:8}},grid:{display:false}}}}});
+  var md=['&#129351;','&#129352;','&#129353;'],bgs=['#FEF3C7','#F1F5F9','#FFEDD5'];
+  $('rtb').innerHTML=t10.map(function(b,i){
+    var c=b.pct>=.5?G:b.pct>=.25?A:R;
+    return '<tr style="background:'+(bgs[i]||'#fff')+'"><td style="text-align:center;font-weight:700">'+(md[i]||'')+(i+1)+'</td><td style="font-weight:700">'+b.name+'</td><td style="text-align:center">'+b.expected+'</td><td style="text-align:center;color:'+G+';font-weight:700">'+b.both+'</td><td style="text-align:center;font-weight:700;color:'+c+'">'+(b.pct*100).toFixed(1)+'%</td><td>'+mkbar(b.pct)+'</td></tr>'
+  }).join('');
+}
+</script>
+</body></html>
